@@ -9,11 +9,13 @@ AR glasses interface for [[https://github.com/mwlaboratories/openclaw][openclaw]
 
 * Why
 
-openclaw organizes agents into Discord channels, one per project or context. deltaclaw puts that in your glasses so you can:
+One of the coolest ways to control openclaw is through Discord ([[https://youtu.be/vxpuLIA17q4][demo]]). Unlike a single Telegram or WhatsApp chat where everything gets lost in one stream, Discord gives you channels. Each channel is a separate agent, project, or workflow with its own history and pinned artifacts. Agents can run 24/7, chain outputs across channels, and stay organized.
+
+deltaclaw puts all of that in your glasses:
 
 - *Multichannel* : scroll between projects, each channel is a different agent/context
-- *Persistent context* : agents remember the full conversation, pick up where you left off
-- *Parallel agents* : talk to your frontend agent in one channel, backend agent in another
+- *Parallel agents* : coding agent in one channel, research agent in another, all running
+- *Persistent history* : full conversation per channel, agents pick up where you left off
 - *Voice-first* : tap to record, speak, tap to send. No typing, no phone, no screen
 
 * How it works
