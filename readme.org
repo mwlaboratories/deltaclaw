@@ -78,7 +78,8 @@ The glasses app talks directly to the Discord API (bot token configured in setti
 
 * Prerequisites
 
-- [[https://www.evenrealities.com/][EvenRealities G2]] goggles
+- [[https://nixos.org/download/][Nix]] with flakes enabled
+- [[https://www.evenrealities.com/][EvenRealities G2]] goggles (or use the simulator)
 - Discord bot token (see setup below)
 - For local STT: [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] on your network
 - For cloud STT: paid provider (coming soon)
@@ -94,14 +95,40 @@ The glasses app talks directly to the Discord API (bot token configured in setti
 
 * Development
 
+Requires [[https://nixos.org/download/][Nix]] with flakes enabled.
+
 #+begin_src sh
-npm install
-npm run dev     # vite dev server
+nix develop
 #+end_src
+
+This drops you into a ready environment with all dependencies installed. Available commands:
+
+| Command          | Description                          |
+|------------------+--------------------------------------|
+| =just dev=       | Start Vite dev server                |
+| =just simulate=  | Launch Even Hub simulator            |
+| =just qr=        | QR code to sideload on glasses       |
+| =just pack=      | Package =.ehpk= for submission      |
+
+** Testing on glasses
+
+1. =just dev= to start the dev server
+2. =just qr= in another terminal to generate a QR code
+3. Scan the QR with the Even app on your phone
+4. The app loads on your G2 glasses, connected to your local server
+
+** Testing locally
+
+#+begin_src sh
+just simulate
+#+end_src
+
+Launches the Even Hub simulator for local development without glasses.
 
 * Stack
 
 - TypeScript + React
 - Vite
-- EvenRealities SDK (=@evenrealities/even_hub_sdk=)
+- [[https://evenhub.evenrealities.com/][Even Hub SDK]] (=@evenrealities/even_hub_sdk= v0.0.9)
+- Even Hub CLI + Simulator
 - WebSocket for STT streaming

@@ -23,12 +23,27 @@
         ];
 
         fhs = pkgs.buildFHSEnv {
-          name = "deltaclaw";
+          name = "deltaclaw-fhs";
           targetPkgs = _: [ pkgs.nodejs_22 pkgs.git pkgs.curl pkgs.just ] ++ runtimeLibs;
           runScript = "bash";
           profile = ''
-            export PS1="[\[\033[1;36m\]deltaclaw@\h\[\033[0m\]:\[\033[1;32m\]\w\[\033[0m\]]$ "
             cd "$DELTACLAW_CWD"
+            export PATH="$DELTACLAW_CWD/node_modules/.bin:$PATH"
+            export PS1="[\[\033[1;36m\]deltaclaw@\h\[\033[0m\]:\[\033[1;32m\]\w\[\033[0m\]]$ "
+
+            if [ ! -d node_modules ] || [ package.json -nt node_modules/.package-lock.json ]; then
+              echo -e "\033[1;33m  Installing dependencies...\033[0m"
+              npm install --no-fund --no-audit
+            fi
+
+echo ""
+            echo -e "\033[1;36m  Deltaclaw - Discord G2 App\033[0m"
+            echo ""
+            echo "  just dev          Start Vite dev server"
+            echo "  just simulate     Launch Even Hub simulator"
+            echo "  just qr           QR code to sideload on glasses"
+            echo "  just pack         Package .ehpk for submission"
+            echo ""
           '';
         };
       in
@@ -36,15 +51,8 @@
         devShells.default = pkgs.mkShell {
           packages = [ fhs ];
           shellHook = ''
-            echo ""
-            echo -e "\033[1;36m  Deltaclaw - Discord G2 App\033[0m"
-            echo ""
-            echo "  deltaclaw         Enter FHS shell"
-            echo "  just setup        Install dependencies"
-            echo "  just proxy        Start Discord/STT proxy"
-            echo "  just dev          Start Vite dev server"
-            echo ""
             export DELTACLAW_CWD="$PWD"
+            exec deltaclaw-fhs
           '';
         };
       }
