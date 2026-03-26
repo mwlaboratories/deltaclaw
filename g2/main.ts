@@ -37,7 +37,7 @@ export function createDeltaclawActions(setStatus: SetStatus): AppActions {
         appendEventLog('Bridge connected')
 
         try {
-          state.channels = await fetchChannels(state.proxyUrl)
+          state.channels = await fetchChannels(state.discordToken, state.guildId)
           appendEventLog(`Loaded ${state.channels.length} channels`)
           await renderChannelList()
           setStatus(`${state.channels.length} channels. Scroll+tap to select.`)
@@ -57,7 +57,7 @@ export function createDeltaclawActions(setStatus: SetStatus): AppActions {
         return
       }
       try {
-        state.channels = await fetchChannels(state.proxyUrl)
+        state.channels = await fetchChannels(state.discordToken, state.guildId)
         await renderChannelList()
         setStatus(`Refreshed: ${state.channels.length} channels`)
       } catch (err) {

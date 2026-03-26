@@ -11,10 +11,10 @@ AR glasses interface for [[https://github.com/mwlaboratories/openclaw][openclaw]
 
 openclaw organizes agents into Discord channels, one per project or context. deltaclaw puts that in your glasses so you can:
 
-- Talk to specific agents directly, each with their own context
-- Split work across projects, switch channels to switch context
-- Read agent responses and give follow-up instructions by voice
-- Stay hands-free while your agents work
+- *Multichannel* : scroll between projects, each channel is a different agent/context
+- *Persistent context* : agents remember the full conversation, pick up where you left off
+- *Parallel agents* : talk to your frontend agent in one channel, backend agent in another
+- *Voice-first* : tap to record, speak, tap to send. No typing, no phone, no screen
 
 * How it works
 
@@ -26,26 +26,25 @@ openclaw organizes agents into Discord channels, one per project or context. del
 │  ├── scroll/tap to browse channels       │
 │  ├── tap to view messages                │
 │  ├── tap to record → speak → tap to send │
-│  └── all traffic goes to one address     │
-│                                          │
-│  ws://server:8099/stt     voice audio    │
-│  http://server:8099/api   discord msgs   │
+│  │                                       │
+│  │   Discord API (direct, bot token)     │
+│  │   STT via stt-anywhere (optional)     │
+│  │        or cloud provider              │
 └──────────────────────┬───────────────────┘
                        │
-         Tailscale / LAN (your network)
+         Tailscale / LAN / Internet
                        │
-┌──────────────────────┴───────────────────┐
-│  Your PC (GPU workstation, always on)    │
-│                                          │
-│  stt-anywhere service                    │
-│  ├── /stt          STT relay             │
-│  │   audio ──► moshi-server (CUDA)       │
-│  │          ◄── transcribed words        │
-│  │                                       │
-│  └── /api/discord  Discord proxy         │
-│      channels, messages, send            │
-│      (bot token stays here)              │
-└──────────────────────────────────────────┘
+       ┌───────────────┼───────────────┐
+       │                               │
+       ▼                               ▼
+┌──────────────┐              ┌──────────────┐
+│  Discord API │              │ stt-anywhere  │
+│  (channels,  │              │ (optional)    │
+│   messages)  │              │              │
+└──────────────┘              │ your GPU,    │
+                              │ ~500ms,      │
+                              │ free, local  │
+                              └──────────────┘
 #+end_example
 
 ** User flow
@@ -64,21 +63,30 @@ deltaclaw/
 ├── g2/            Glasses app logic
 │   ├── events.ts    Scroll, tap, double-tap handlers
 │   ├── renderer.ts  Multi-panel UI rendering to glasses
-│   ├── discord.ts   Discord REST client (via proxy)
+│   ├── discord.ts   Discord REST client (direct API)
 │   ├── stt.ts       WebSocket STT client
 │   ├── state.ts     App state (view, channels, transcript)
 │   └── ui.tsx       Settings panel (React)
-├── _shared/       Shared types and logging
-└── server/        (deprecated, replaced by stt-anywhere relay)
+└── _shared/       Shared types and logging
 #+end_example
 
-The glasses app is a lightweight web app that talks to [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] for both speech-to-text and Discord API access. No server of its own needed.
+The glasses app talks directly to the Discord API (bot token configured in settings). For speech-to-text it connects to [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] over WebSocket, or a cloud STT provider.
 
 * Prerequisites
 
 - [[https://even.ai][Even Hub]] AR glasses
-- [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] running on your network with relay + Discord proxy enabled
-- Discord bot invited to your server (see stt-anywhere readme for setup)
+- Discord bot token (see setup below)
+- For local STT: [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] on your network
+- For cloud STT: paid provider (coming soon)
+
+** Setting up the Discord bot
+
+1. [[https://discord.com/developers/applications][Discord Developer Portal]] → New Application → name it "deltaclaw"
+2. Bot tab → Reset Token → save the token
+3. OAuth2 → URL Generator → select =bot= scope + =Send Messages= + =Read Message History=
+4. Open the generated URL to invite the bot to your server
+5. Right-click your server name → Copy Server ID (enable Developer Mode in settings first)
+6. Enter the bot token and guild ID in the deltaclaw settings panel
 
 * Development
 
@@ -86,8 +94,6 @@ The glasses app is a lightweight web app that talks to [[https://github.com/mwla
 npm install
 npm run dev     # vite dev server
 #+end_src
-
-Configure the proxy URL in the settings panel to point at your stt-anywhere relay (e.g. =http://your-pc:8099=).
 
 * Stack
 

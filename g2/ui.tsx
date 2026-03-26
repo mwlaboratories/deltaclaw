@@ -2,12 +2,34 @@ import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { state } from './state'
 
+const inputStyle = {
+  width: '100%',
+  padding: '6px 8px',
+  background: '#222',
+  color: '#eee',
+  border: '1px solid #444',
+  borderRadius: '4px',
+  fontSize: '0.85rem',
+  marginBottom: '8px',
+}
+
+const labelStyle = {
+  display: 'block' as const,
+  marginBottom: '4px',
+  fontSize: '0.85rem',
+  color: '#aaa',
+}
+
 function SettingsPanel() {
-  const [proxyUrl, setProxyUrl] = useState(state.proxyUrl)
+  const [sttUrl, setSttUrl] = useState(state.sttUrl)
+  const [discordToken, setDiscordToken] = useState(state.discordToken)
+  const [guildId, setGuildId] = useState(state.guildId)
   const [saved, setSaved] = useState(false)
 
   function save() {
-    state.proxyUrl = proxyUrl
+    state.sttUrl = sttUrl
+    state.discordToken = discordToken
+    state.guildId = guildId
     setSaved(true)
     setTimeout(() => setSaved(false), 1500)
   }
@@ -15,27 +37,19 @@ function SettingsPanel() {
   return (
     <div style={{ padding: '12px', background: '#1a1a1a', borderRadius: '8px' }}>
       <h3 style={{ margin: '0 0 12px', fontSize: '1rem' }}>Deltaclaw Settings</h3>
-      <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#aaa' }}>
-        Proxy URL
-      </label>
-      <input
-        type="text"
-        value={proxyUrl}
-        onChange={(e) => setProxyUrl(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '6px 8px',
-          background: '#222',
-          color: '#eee',
-          border: '1px solid #444',
-          borderRadius: '4px',
-          fontSize: '0.85rem',
-        }}
-      />
+
+      <label style={labelStyle}>STT WebSocket URL</label>
+      <input type="text" value={sttUrl} onChange={(e) => setSttUrl(e.target.value)} style={inputStyle} />
+
+      <label style={labelStyle}>Discord Bot Token</label>
+      <input type="password" value={discordToken} onChange={(e) => setDiscordToken(e.target.value)} style={inputStyle} />
+
+      <label style={labelStyle}>Discord Guild ID</label>
+      <input type="text" value={guildId} onChange={(e) => setGuildId(e.target.value)} style={inputStyle} />
+
       <button
         onClick={save}
         style={{
-          marginTop: '8px',
           padding: '6px 16px',
           background: '#333',
           color: '#eee',

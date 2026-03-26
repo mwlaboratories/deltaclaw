@@ -24,7 +24,9 @@ export type State = {
   messages: Message[]
   transcript: string
   recording: boolean
-  proxyUrl: string
+  sttUrl: string
+  discordToken: string
+  guildId: string
 }
 
 export const state: State = {
@@ -36,7 +38,9 @@ export const state: State = {
   messages: [],
   transcript: '',
   recording: false,
-  proxyUrl: 'http://localhost:3001',
+  sttUrl: 'ws://localhost:8099',
+  discordToken: '',
+  guildId: '',
 }
 
 export let bridge: EvenAppBridge | null = null

@@ -4,12 +4,11 @@ export type SttSession = {
 }
 
 export function startSttSession(
-  proxyUrl: string,
+  sttUrl: string,
   onWord: (text: string) => void,
   onError: (msg: string) => void,
 ): SttSession {
-  const wsUrl = proxyUrl.replace(/^http/, 'ws') + '/stt'
-  const ws = new WebSocket(wsUrl)
+  const ws = new WebSocket(sttUrl)
 
   ws.binaryType = 'arraybuffer'
 

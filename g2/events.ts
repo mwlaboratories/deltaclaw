@@ -76,7 +76,7 @@ async function handleChannelEvent(type: OsEventTypeList) {
       state.view = 'messages'
       appendEventLog(`Opening #${ch.name}`)
       try {
-        state.messages = await fetchMessages(state.proxyUrl, ch.id)
+        state.messages = await fetchMessages(state.discordToken, ch.id)
       } catch (err) {
         appendEventLog(`Error: ${err}`)
         state.messages = []
@@ -94,7 +94,7 @@ async function handleMessageEvent(type: OsEventTypeList) {
       // Refresh messages
       if (state.currentChannelId) {
         try {
-          state.messages = await fetchMessages(state.proxyUrl, state.currentChannelId)
+          state.messages = await fetchMessages(state.discordToken, state.currentChannelId)
           await renderMessages()
         } catch (err) {
           appendEventLog(`Error refreshing: ${err}`)
@@ -114,7 +114,7 @@ async function handleMessageEvent(type: OsEventTypeList) {
       }
 
       sttSession = startSttSession(
-        state.proxyUrl,
+        state.sttUrl,
         (word) => {
           state.transcript += (state.transcript ? ' ' : '') + word
           void renderStt()
@@ -142,12 +142,12 @@ async function handleSttEvent(type: OsEventTypeList) {
       await stopRecording()
       if (state.transcript.trim() && state.currentChannelId) {
         try {
-          await sendMessage(state.proxyUrl, state.currentChannelId, state.transcript.trim())
+          await sendMessage(state.discordToken, state.currentChannelId, state.transcript.trim())
           appendEventLog(`Sent: ${state.transcript.trim()}`)
         } catch (err) {
           appendEventLog(`Send error: ${err}`)
         }
-        state.messages = await fetchMessages(state.proxyUrl, state.currentChannelId).catch(() => [])
+        state.messages = await fetchMessages(state.discordToken, state.currentChannelId).catch(() => [])
       }
       state.transcript = ''
       state.view = 'messages'
