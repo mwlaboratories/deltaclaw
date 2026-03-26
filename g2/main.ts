@@ -2,8 +2,8 @@ import { waitForEvenAppBridge } from '@evenrealities/even_hub_sdk'
 import type { AppActions, SetStatus } from '../shared/app-types'
 import { appendEventLog } from '../shared/log'
 import { state, setBridge } from './state'
-import { fetchChannels } from './discord'
-import { renderChannelList } from './renderer'
+import { fetchChannels, fetchLatestMessage } from './discord'
+import { renderWelcome, renderChannelList, updateChannelPreview } from './renderer'
 import { onEvenHubEvent } from './events'
 import { initUI } from './ui'
 
@@ -15,6 +15,21 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
       .catch(reject)
       .finally(() => window.clearTimeout(timer))
   })
+}
+
+async function loadChannelPreviews(setStatus: SetStatus) {
+  if (!state.discordToken) return
+  for (const ch of state.channels) {
+    const msg = await fetchLatestMessage(state.discordToken, ch.id)
+    if (msg) {
+      ch.lastAuthor = msg.author
+      ch.lastMessage = msg.content
+    }
+  }
+  if (state.view === 'channels') {
+    await updateChannelPreview()
+  }
+  appendEventLog('Previews loaded')
 }
 
 export function createDeltaclawActions(setStatus: SetStatus): AppActions {
@@ -33,9 +48,13 @@ export function createDeltaclawActions(setStatus: SetStatus): AppActions {
         })
 
         connected = true
-        setStatus('Connected. Loading channels...')
         appendEventLog('Bridge connected')
 
+        // Show welcome screen
+        await renderWelcome()
+        setStatus('Connected. Tap glasses to enter.')
+
+        // Load channels in background
         try {
           if (state.discordToken && state.guildId) {
             state.channels = await fetchChannels(state.discordToken, state.guildId)
@@ -53,8 +72,7 @@ export function createDeltaclawActions(setStatus: SetStatus): AppActions {
             ]
           }
           appendEventLog(`Loaded ${state.channels.length} channels`)
-          await renderChannelList()
-          setStatus(`${state.channels.length} channels. Scroll+tap to select.`)
+          loadChannelPreviews(setStatus)
         } catch (err) {
           setStatus(`Channel load failed: ${err}`)
           appendEventLog(`Error: ${err}`)
@@ -74,6 +92,7 @@ export function createDeltaclawActions(setStatus: SetStatus): AppActions {
         state.channels = await fetchChannels(state.discordToken, state.guildId)
         await renderChannelList()
         setStatus(`Refreshed: ${state.channels.length} channels`)
+        loadChannelPreviews(setStatus)
       } catch (err) {
         setStatus(`Refresh failed: ${err}`)
       }

@@ -1,11 +1,13 @@
 import type { EvenAppBridge } from '@evenrealities/even_hub_sdk'
 
-export type View = 'channels' | 'messages' | 'stt'
+export type View = 'welcome' | 'channels' | 'messages' | 'stt'
 
 export type Channel = {
   id: string
   name: string
   position: number
+  lastMessage?: string
+  lastAuthor?: string
 }
 
 export type Message = {
@@ -29,8 +31,28 @@ export type State = {
   guildId: string
 }
 
+const STORAGE_KEY = 'deltaclaw-settings'
+
+function loadSettings(): { sttUrl: string; discordToken: string; guildId: string } {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  return { sttUrl: 'ws://localhost:8099', discordToken: '', guildId: '' }
+}
+
+export function saveSettings() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    sttUrl: state.sttUrl,
+    discordToken: state.discordToken,
+    guildId: state.guildId,
+  }))
+}
+
+const saved = loadSettings()
+
 export const state: State = {
-  view: 'channels',
+  view: 'welcome',
   startupRendered: false,
   channels: [],
   selectedChannel: 0,
@@ -38,9 +60,9 @@ export const state: State = {
   messages: [],
   transcript: '',
   recording: false,
-  sttUrl: 'ws://localhost:8099',
-  discordToken: '',
-  guildId: '',
+  sttUrl: saved.sttUrl,
+  discordToken: saved.discordToken,
+  guildId: saved.guildId,
 }
 
 export let bridge: EvenAppBridge | null = null

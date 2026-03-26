@@ -1,6 +1,6 @@
 import type { Channel, Message } from './state'
 
-const DISCORD_API = 'https://discord.com/api/v10'
+const DISCORD_API = '/discord'
 
 function headers(token: string) {
   return {
@@ -13,7 +13,10 @@ export async function fetchChannels(token: string, guildId: string): Promise<Cha
   const res = await fetch(`${DISCORD_API}/guilds/${guildId}/channels`, {
     headers: headers(token),
   })
-  if (!res.ok) throw new Error(`Failed to fetch channels: ${res.status}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(`Failed to fetch channels: ${res.status} ${body}`)
+  }
   const channels = (await res.json()) as Array<{ id: string; name: string; type: number; position: number }>
   return channels
     .filter((ch) => ch.type === 0)
@@ -63,6 +66,34 @@ const MOCK_MESSAGES: Record<string, Message[]> = {
   ],
 }
 
+type RawMessage = {
+  id: string
+  content: string
+  author: { username: string }
+  timestamp: string
+  embeds?: Array<{ title?: string; description?: string }>
+  attachments?: Array<{ filename: string }>
+  sticker_items?: Array<{ name: string }>
+}
+
+function extractContent(msg: RawMessage): string {
+  const parts: string[] = []
+  if (msg.content) parts.push(msg.content)
+  if (msg.embeds?.length) {
+    for (const e of msg.embeds) {
+      if (e.title) parts.push(`[${e.title}]`)
+      else if (e.description) parts.push(e.description.slice(0, 100))
+    }
+  }
+  if (msg.attachments?.length) {
+    parts.push(msg.attachments.map((a) => a.filename).join(', '))
+  }
+  if (msg.sticker_items?.length) {
+    parts.push(msg.sticker_items.map((s) => `[${s.name}]`).join(' '))
+  }
+  return parts.join(' ') || '[empty]'
+}
+
 export async function fetchMessages(
   token: string,
   channelId: string,
@@ -74,18 +105,26 @@ export async function fetchMessages(
     headers: headers(token),
   })
   if (!res.ok) throw new Error(`Failed to fetch messages: ${res.status}`)
-  const messages = (await res.json()) as Array<{
-    id: string
-    content: string
-    author: { username: string }
-    timestamp: string
-  }>
-  return messages.map(({ id, content, author, timestamp }) => ({
-    id,
-    content,
-    author: author.username,
-    timestamp,
+  const messages = (await res.json()) as RawMessage[]
+  return messages.map((msg) => ({
+    id: msg.id,
+    content: extractContent(msg),
+    author: msg.author.username,
+    timestamp: msg.timestamp,
   }))
+}
+
+export async function fetchLatestMessage(
+  token: string,
+  channelId: string,
+): Promise<{ author: string; content: string } | null> {
+  if (!token) return null
+  try {
+    const msgs = await fetchMessages(token, channelId, 1)
+    return msgs[0] ? { author: msgs[0].author, content: msgs[0].content } : null
+  } catch {
+    return null
+  }
 }
 
 export async function sendMessage(token: string, channelId: string, content: string): Promise<void> {

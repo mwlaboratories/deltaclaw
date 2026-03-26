@@ -24,7 +24,7 @@
 
         fhs = pkgs.buildFHSEnv {
           name = "deltaclaw-fhs";
-          targetPkgs = _: [ pkgs.nodejs_22 pkgs.git pkgs.curl pkgs.just ] ++ runtimeLibs;
+          targetPkgs = _: [ pkgs.nodejs_22 pkgs.git pkgs.curl pkgs.just pkgs.psmisc ] ++ runtimeLibs;
           runScript = "bash";
           profile = ''
             cd "$DELTACLAW_CWD"
