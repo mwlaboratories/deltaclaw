@@ -1,0 +1,88 @@
+#+title: deltaclaw
+#+description: Discord on AR glasses, powered by voice.
+
+Discord client for [[https://even.ai][Even Hub]] AR glasses. Browse channels, read messages, and reply by voice — all through tap gestures on your glasses.
+
+#+begin_example
+  tap → speak → message sent ✦ hands-free Discord
+#+end_example
+
+* How it works
+
+#+begin_example
+┌──────────────────────────────────────────┐
+│  Even Hub Glasses                        │
+│                                          │
+│  deltaclaw web app                       │
+│  ├── scroll/tap to browse channels       │
+│  ├── tap to view messages                │
+│  ├── tap to record → speak → tap to send │
+│  └── all traffic goes to one address     │
+│                                          │
+│  ws://server:8099/stt ──── voice audio   │
+│  http://server:8099/api ── discord msgs  │
+└──────────────────────┬───────────────────┘
+                       │
+         Tailscale / LAN (your network)
+                       │
+┌──────────────────────┴───────────────────┐
+│  Your PC (GPU workstation, always on)    │
+│                                          │
+│  stt-anywhere service                    │
+│  ├── /stt          STT relay             │
+│  │   audio ──► moshi-server (CUDA)       │
+│  │          ◄── transcribed words        │
+│  │                                       │
+│  └── /api/discord  Discord proxy         │
+│      channels, messages, send            │
+│      (bot token stays here)              │
+└──────────────────────────────────────────┘
+#+end_example
+
+** User flow
+
+1. Open deltaclaw on glasses
+2. Scroll through channels, tap to select
+3. Read messages in the channel
+4. Tap to record — speak your message
+5. Tap to send (or double-tap to cancel)
+
+* Architecture
+
+#+begin_example
+deltaclaw/
+├── src/           Browser entry point (DOM setup, styles)
+├── g2/            Glasses app logic
+│   ├── events.ts    Scroll, tap, double-tap handlers
+│   ├── renderer.ts  Multi-panel UI rendering to glasses
+│   ├── discord.ts   Discord REST client (via proxy)
+│   ├── stt.ts       WebSocket STT client
+│   ├── state.ts     App state (view, channels, transcript)
+│   └── ui.tsx       Settings panel (React)
+├── _shared/       Shared types and logging
+└── server/        (deprecated — replaced by stt-anywhere relay)
+#+end_example
+
+The glasses app is a lightweight web app that talks to [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] for both speech-to-text and Discord API access. No server of its own needed.
+
+* Prerequisites
+
+- [[https://even.ai][Even Hub]] AR glasses
+- [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] running on your network with relay + Discord proxy enabled
+- Discord bot invited to your server (see stt-anywhere readme for setup)
+
+* Development
+
+#+begin_src sh
+npm install
+npm run dev     # vite dev server
+#+end_src
+
+Configure the proxy URL in the settings panel to point at your stt-anywhere relay (e.g. =http://your-pc:8099=).
+
+* Stack
+
+- TypeScript + React
+- Vite
+- Even Hub SDK (=@evenrealities/even_hub_sdk=)
+- WebSocket for STT streaming
