@@ -1,11 +1,20 @@
 #+title: deltaclaw
-#+description: Discord on AR glasses, powered by voice.
+#+description: Control openclaw from AR glasses, powered by voice.
 
-Discord client for [[https://even.ai][Even Hub]] AR glasses. Browse channels, read messages, and reply by voice — all through tap gestures on your glasses.
+AR glasses interface for [[https://github.com/mwlaboratories/openclaw][openclaw]]. Talk to your AI agents hands-free through [[https://even.ai][Even Hub]] glasses.
 
 #+begin_example
-  tap → speak → message sent ✦ hands-free Discord
+  tap → speak → agent receives instructions ✦ hands-free openclaw
 #+end_example
+
+* Why
+
+openclaw organizes agents into Discord channels, one per project or context. deltaclaw puts that in your glasses so you can:
+
+- Talk to specific agents directly, each with their own context
+- Split work across projects, switch channels to switch context
+- Read agent responses and give follow-up instructions by voice
+- Stay hands-free while your agents work
 
 * How it works
 
@@ -19,8 +28,8 @@ Discord client for [[https://even.ai][Even Hub]] AR glasses. Browse channels, re
 │  ├── tap to record → speak → tap to send │
 │  └── all traffic goes to one address     │
 │                                          │
-│  ws://server:8099/stt ──── voice audio   │
-│  http://server:8099/api ── discord msgs  │
+│  ws://server:8099/stt     voice audio    │
+│  http://server:8099/api   discord msgs   │
 └──────────────────────┬───────────────────┘
                        │
          Tailscale / LAN (your network)
@@ -44,7 +53,7 @@ Discord client for [[https://even.ai][Even Hub]] AR glasses. Browse channels, re
 1. Open deltaclaw on glasses
 2. Scroll through channels, tap to select
 3. Read messages in the channel
-4. Tap to record — speak your message
+4. Tap to record, speak your message
 5. Tap to send (or double-tap to cancel)
 
 * Architecture
@@ -60,7 +69,7 @@ deltaclaw/
 │   ├── state.ts     App state (view, channels, transcript)
 │   └── ui.tsx       Settings panel (React)
 ├── _shared/       Shared types and logging
-└── server/        (deprecated — replaced by stt-anywhere relay)
+└── server/        (deprecated, replaced by stt-anywhere relay)
 #+end_example
 
 The glasses app is a lightweight web app that talks to [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] for both speech-to-text and Discord API access. No server of its own needed.
