@@ -14,8 +14,8 @@
         runtimeLibs = with pkgs; [
           glib nss nspr atk cups dbus libdrm gtk3 gdk-pixbuf pango cairo
           libGL libxkbcommon expat alsa-lib at-spi2-atk at-spi2-core udev
-          xorg.libX11 xorg.libXcomposite xorg.libXdamage xorg.libXext
-          xorg.libXfixes xorg.libXrandr xorg.libxcb xorg.libxshmfence
+          libx11 libxcomposite libxdamage libxext
+          libxfixes libxrandr libxcb libxshmfence
           webkitgtk_4_1 libsoup_3
           gst_all_1.gstreamer gst_all_1.gst-plugins-base
           gst_all_1.gst-plugins-good gst_all_1.gst-plugins-bad
@@ -29,14 +29,14 @@
           profile = ''
             cd "$DELTACLAW_CWD"
             export PATH="$DELTACLAW_CWD/node_modules/.bin:$PATH"
-            export PS1="[\[\033[1;36m\]deltaclaw@\h\[\033[0m\]:\[\033[1;32m\]\w\[\033[0m\]]$ "
+            export PS1="[\[\033[1;36m\]deltaclaw\[\033[0m\]:\[\033[1;32m\]\W\[\033[0m\]]$ "
 
             if [ ! -d node_modules ] || [ package.json -nt node_modules/.package-lock.json ]; then
               echo -e "\033[1;33m  Installing dependencies...\033[0m"
               npm install --no-fund --no-audit
             fi
 
-echo ""
+            echo ""
             echo -e "\033[1;36m  Deltaclaw - Discord G2 App\033[0m"
             echo ""
             echo "  just dev          Start Vite dev server"
