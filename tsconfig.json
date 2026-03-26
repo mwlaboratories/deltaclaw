@@ -9,5 +9,5 @@
     "jsx": "react-jsx",
     "noEmit": true
   },
-  "include": ["src", "g2", "_shared"]
+  "include": ["src", "g2", "shared"]
 }

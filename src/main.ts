@@ -1,5 +1,5 @@
 import { app } from '../g2/index'
-import { appendEventLog } from '../_shared/log'
+import { appendEventLog } from '../shared/log'
 
 ;(async () => {
   const connectBtn = document.getElementById('connectBtn') as HTMLButtonElement

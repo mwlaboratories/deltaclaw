@@ -3,7 +3,7 @@ import { state, bridge } from './state'
 import { fetchMessages, sendMessage } from './discord'
 import { renderChannelList, renderMessages, renderStt, updateChannelSelection } from './renderer'
 import { startSttSession, type SttSession } from './stt'
-import { appendEventLog } from '../_shared/log'
+import { appendEventLog } from '../shared/log'
 
 const SCROLL_COOLDOWN_MS = 300
 let lastScrollTime = 0
@@ -31,6 +31,11 @@ export function onEvenHubEvent(event: EvenHubEvent) {
   if (event.audioEvent?.audioPcm && sttSession && state.recording) {
     sttSession.sendAudio(event.audioEvent.audioPcm)
     return
+  }
+
+  // Track list selection from SDK
+  if (event.listEvent?.currentSelectItemIndex != null) {
+    state.selectedChannel = event.listEvent.currentSelectItemIndex
   }
 
   const eventType = resolveEventType(event)
@@ -69,7 +74,8 @@ async function handleChannelEvent(type: OsEventTypeList) {
       }
       break
 
-    case OsEventTypeList.CLICK_EVENT: {
+    case OsEventTypeList.CLICK_EVENT:
+    case OsEventTypeList.DOUBLE_CLICK_EVENT: {
       const ch = state.channels[state.selectedChannel]
       if (!ch) return
       state.currentChannelId = ch.id

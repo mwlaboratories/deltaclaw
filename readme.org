@@ -1,11 +1,13 @@
 #+title: deltaclaw
 #+description: Control openclaw from AR glasses, powered by voice.
 
-AR glasses interface for [[https://github.com/mwlaboratories/openclaw][openclaw]]. Talk to your AI agents hands-free through [[https://even.ai][Even Hub]] glasses.
+AR glasses interface for [[https://github.com/mwlaboratories/openclaw][openclaw]]. Talk to your AI agents hands-free through [[https://www.evenrealities.com/][EvenRealities G2]] goggles.
 
 #+begin_example
   tap → speak → agent receives instructions ✦ hands-free openclaw
 #+end_example
+
+[[file:docs/glasses-channels.png]] [[file:docs/glasses-messages.png]]
 
 * Why
 
@@ -22,7 +24,7 @@ deltaclaw puts all of that in your glasses:
 
 #+begin_example
 ┌──────────────────────────────────────────┐
-│  Even Hub Glasses                        │
+│  EvenRealities G2 Goggles                │
 │                                          │
 │  deltaclaw web app                       │
 │  ├── scroll/tap to browse channels       │
@@ -69,14 +71,14 @@ deltaclaw/
 │   ├── stt.ts       WebSocket STT client
 │   ├── state.ts     App state (view, channels, transcript)
 │   └── ui.tsx       Settings panel (React)
-└── _shared/       Shared types and logging
+└── shared/        Shared types and logging
 #+end_example
 
 The glasses app talks directly to the Discord API (bot token configured in settings). For speech-to-text it connects to [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] over WebSocket, or a cloud STT provider.
 
 * Prerequisites
 
-- [[https://even.ai][Even Hub]] AR glasses
+- [[https://www.evenrealities.com/][EvenRealities G2]] goggles
 - Discord bot token (see setup below)
 - For local STT: [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] on your network
 - For cloud STT: paid provider (coming soon)
@@ -101,5 +103,5 @@ npm run dev     # vite dev server
 
 - TypeScript + React
 - Vite
-- Even Hub SDK (=@evenrealities/even_hub_sdk=)
+- EvenRealities SDK (=@evenrealities/even_hub_sdk=)
 - WebSocket for STT streaming

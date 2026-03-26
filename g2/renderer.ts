@@ -3,23 +3,60 @@ import {
   RebuildPageContainer,
   TextContainerUpgrade,
   TextContainerProperty,
+  ListContainerProperty,
+  ListItemContainerProperty,
 } from '@evenrealities/even_hub_sdk'
 import { state, bridge } from './state'
 
-async function setupContainers(count: number, texts: { id: number; name: string; content: string }[]) {
+type ContainerSetup = {
+  count: number
+  texts?: { id: number; name: string; content: string; x?: number; y?: number; w?: number; h?: number }[]
+  lists?: { id: number; name: string; items: string[]; x?: number; y?: number; w?: number; h?: number }[]
+}
+
+async function setupContainers(setup: ContainerSetup) {
   if (!bridge) return
-  const textObject = texts.map(
-    (t) => new TextContainerProperty({ containerID: t.id, containerName: t.name, content: t.content }),
+
+  const textObject = (setup.texts ?? []).map(
+    (t) =>
+      new TextContainerProperty({
+        containerID: t.id,
+        containerName: t.name,
+        content: t.content,
+        xPosition: t.x ?? 0,
+        yPosition: t.y ?? 0,
+        width: t.w ?? 576,
+        height: t.h ?? 288,
+      }),
+  )
+
+  const listObject = (setup.lists ?? []).map(
+    (l) =>
+      new ListContainerProperty({
+        containerID: l.id,
+        containerName: l.name,
+        xPosition: l.x ?? 0,
+        yPosition: l.y ?? 30,
+        width: l.w ?? 576,
+        height: l.h ?? 258,
+        itemContainer: new ListItemContainerProperty({
+          itemCount: l.items.length,
+          itemWidth: 0,
+          isItemSelectBorderEn: 1,
+          itemName: l.items,
+        }),
+        isEventCapture: 1,
+      }),
   )
 
   if (!state.startupRendered) {
     await bridge.createStartUpPageContainer(
-      new CreateStartUpPageContainer({ containerTotalNum: count, textObject }),
+      new CreateStartUpPageContainer({ containerTotalNum: setup.count, textObject, listObject }),
     )
     state.startupRendered = true
   } else {
     await bridge.rebuildPageContainer(
-      new RebuildPageContainer({ containerTotalNum: count, textObject }),
+      new RebuildPageContainer({ containerTotalNum: setup.count, textObject, listObject }),
     )
   }
 }
@@ -32,16 +69,13 @@ async function updateText(id: number, name: string, content: string) {
 }
 
 export async function renderChannelList() {
-  const lines = state.channels.map((ch, i) => {
-    const marker = i === state.selectedChannel ? '> ' : '  '
-    return `${marker}#${ch.name}`
-  })
-  const body = lines.join('\n') || 'No channels found'
+  const items = state.channels.map((ch) => `#${ch.name}`)
 
-  await setupContainers(2, [
-    { id: 1, name: 'header', content: 'Discord Channels' },
-    { id: 2, name: 'body', content: body },
-  ])
+  await setupContainers({
+    count: 2,
+    texts: [{ id: 1, name: 'header', content: 'Deltaclaw', y: 0, h: 28 }],
+    lists: [{ id: 2, name: 'channels', items, y: 30, h: 258 }],
+  })
 }
 
 export async function renderMessages() {
@@ -54,21 +88,27 @@ export async function renderMessages() {
         .map((m) => `${m.author}: ${m.content}`)
         .join('\n')
     : 'No messages'
-  const footer = 'Tap=Record  DblTap=Back'
+  const footer = 'Tap to record | Doubletap to return'
 
-  await setupContainers(3, [
-    { id: 1, name: 'header', content: header },
-    { id: 2, name: 'body', content: tail(body, 480) },
-    { id: 3, name: 'footer', content: footer },
-  ])
+  await setupContainers({
+    count: 3,
+    texts: [
+      { id: 1, name: 'header', content: header, y: 0, h: 28 },
+      { id: 2, name: 'body', content: tail(body, 480), y: 30, h: 230 },
+      { id: 3, name: 'footer', content: footer, y: 262, h: 26 },
+    ],
+  })
 }
 
 export async function renderStt() {
-  await setupContainers(3, [
-    { id: 1, name: 'header', content: 'Recording...' },
-    { id: 2, name: 'body', content: state.transcript || '(listening)' },
-    { id: 3, name: 'footer', content: 'Tap=Send  DblTap=Cancel' },
-  ])
+  await setupContainers({
+    count: 3,
+    texts: [
+      { id: 1, name: 'header', content: 'Recording...', y: 0, h: 28 },
+      { id: 2, name: 'body', content: state.transcript || '(listening)', y: 30, h: 230 },
+      { id: 3, name: 'footer', content: 'Tap: Send  DblTap: Cancel', y: 262, h: 26 },
+    ],
+  })
 }
 
 export async function updateTranscript() {
@@ -76,11 +116,9 @@ export async function updateTranscript() {
 }
 
 export async function updateChannelSelection() {
-  const lines = state.channels.map((ch, i) => {
-    const marker = i === state.selectedChannel ? '> ' : '  '
-    return `${marker}#${ch.name}`
-  })
-  await updateText(2, 'body', lines.join('\n') || 'No channels found')
+  // With ListContainerProperty, selection is handled by the SDK
+  // Re-render the list to update
+  await renderChannelList()
 }
 
 function tail(text: string, maxLen: number): string {

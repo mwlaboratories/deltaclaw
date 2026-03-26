@@ -1,6 +1,6 @@
 import { waitForEvenAppBridge } from '@evenrealities/even_hub_sdk'
-import type { AppActions, SetStatus } from '../_shared/app-types'
-import { appendEventLog } from '../_shared/log'
+import type { AppActions, SetStatus } from '../shared/app-types'
+import { appendEventLog } from '../shared/log'
 import { state, setBridge } from './state'
 import { fetchChannels } from './discord'
 import { renderChannelList } from './renderer'
@@ -37,7 +37,21 @@ export function createDeltaclawActions(setStatus: SetStatus): AppActions {
         appendEventLog('Bridge connected')
 
         try {
-          state.channels = await fetchChannels(state.discordToken, state.guildId)
+          if (state.discordToken && state.guildId) {
+            state.channels = await fetchChannels(state.discordToken, state.guildId)
+          } else {
+            state.channels = [
+              { id: '1', name: 'daily-digest', position: 0 },
+              { id: '2', name: 'alerts', position: 1 },
+              { id: '3', name: 'webapp', position: 2 },
+              { id: '4', name: 'home-server', position: 3 },
+              { id: '5', name: 'side-project', position: 4 },
+              { id: '6', name: 'coder', position: 5 },
+              { id: '7', name: 'researcher', position: 6 },
+              { id: '8', name: 'org-agent', position: 7 },
+              { id: '9', name: 'scheduler', position: 8 },
+            ]
+          }
           appendEventLog(`Loaded ${state.channels.length} channels`)
           await renderChannelList()
           setStatus(`${state.channels.length} channels. Scroll+tap to select.`)
