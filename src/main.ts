@@ -22,4 +22,7 @@ import { appendEventLog } from '../shared/log'
 
   connectBtn.addEventListener('click', () => void actions.connect())
   actionBtn.addEventListener('click', () => void actions.action())
+
+  // Auto-connect in simulator
+  setTimeout(() => void actions.connect(), 500)
 })()

@@ -109,6 +109,20 @@ Must include `User-Agent: DiscordBot (url, version)` header or Cloudflare blocks
 
 Bot requires **Message Content Intent** enabled in Developer Portal or all message content is empty.
 
+## Testing with Simulator
+
+Run `bash test-sim.sh` to launch vite + simulator automatically. The app auto-connects to the bridge.
+
+Simulator controls: Arrow up/down = scroll, Enter = tap, Enter+Enter = double-tap (back)
+
+Send keys: `nix shell nixpkgs#wtype -c wtype -k Return` (tap), `wtype -k Down` (scroll down)
+
+Take screenshots: `nix shell nixpkgs#grim -c grim /tmp/deltaclaw-test.png`
+
+Kill: `pkill -f evenhub-simulator; pkill -f "vite.*5173"`
+
+**SDK v0.0.9 uses `borderRadius` (correct spelling).** Older versions used `borderRdaius` (typo). The simulator v0.6.2 rejects the typo. Always use `borderRadius`.
+
 ## Reference
 
 - Tesla Even G2 app: https://github.com/nickustinov/tesla-even-g2

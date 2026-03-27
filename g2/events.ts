@@ -1,13 +1,15 @@
 import { OsEventTypeList, type EvenHubEvent } from '@evenrealities/even_hub_sdk'
 import { state, bridge } from './state'
 import { fetchMessages, sendMessage } from './discord'
-import { renderWelcome, renderChannelList, renderMessages, renderStt, scrollMessages, refreshMessages, updateChannelSelection } from './renderer'
+import { renderWelcome, renderChannelList, renderMessages, renderStt, scrollMessages, refreshMessages, updateChannelSelection, updateTranscript } from './renderer'
 import { startSttSession, type SttSession } from './stt'
 import { appendEventLog } from '../shared/log'
 
 const VIEW_CHANGE_GUARD_MS = 1000
-const POLL_INTERVAL_MS = 1000
+const POLL_INTERVAL_MS = 3000
+const SCROLL_COOLDOWN_MS = 200
 let lastViewChangeTime = 0
+let lastScrollTime = 0
 let selectedIndex = 0
 let sttSession: SttSession | null = null
 let busy = false
@@ -15,16 +17,20 @@ let pollTimer: ReturnType<typeof setInterval> | null = null
 
 function startPolling() {
   stopPolling()
-  pollTimer = setInterval(() => {
+  async function poll() {
     if (state.view === 'messages' && state.currentChannelId) {
-      void refreshMessages(state.discordToken, state.currentChannelId)
+      await refreshMessages(state.discordToken, state.currentChannelId).catch(() => {})
     }
-  }, POLL_INTERVAL_MS)
+    if (pollTimer !== null) {
+      pollTimer = setTimeout(poll, POLL_INTERVAL_MS) as any
+    }
+  }
+  pollTimer = setTimeout(poll, POLL_INTERVAL_MS) as any
 }
 
 function stopPolling() {
-  if (pollTimer) {
-    clearInterval(pollTimer)
+  if (pollTimer !== null) {
+    clearTimeout(pollTimer as any)
     pollTimer = null
   }
 }
@@ -124,19 +130,27 @@ async function handleChannelEvent(_event: EvenHubEvent, type: OsEventTypeList) {
   if (viewChangeGuarded()) return
 
   switch (type) {
-    case OsEventTypeList.SCROLL_TOP_EVENT:
+    case OsEventTypeList.SCROLL_TOP_EVENT: {
+      const now = Date.now()
+      if (now - lastScrollTime < SCROLL_COOLDOWN_MS) break
+      lastScrollTime = now
       state.selectedChannel = state.selectedChannel > 0
         ? state.selectedChannel - 1
         : state.channels.length - 1
       await updateChannelSelection()
       break
+    }
 
-    case OsEventTypeList.SCROLL_BOTTOM_EVENT:
+    case OsEventTypeList.SCROLL_BOTTOM_EVENT: {
+      const now = Date.now()
+      if (now - lastScrollTime < SCROLL_COOLDOWN_MS) break
+      lastScrollTime = now
       state.selectedChannel = state.selectedChannel < state.channels.length - 1
         ? state.selectedChannel + 1
         : 0
       await updateChannelSelection()
       break
+    }
 
     case OsEventTypeList.DOUBLE_CLICK_EVENT:
       changeView('welcome')
@@ -175,10 +189,12 @@ async function handleMessageEvent(type: OsEventTypeList) {
   switch (type) {
     case OsEventTypeList.SCROLL_TOP_EVENT:
       scrollMessages('up')
+      void refreshMessages(state.discordToken, state.currentChannelId!)
       break
 
     case OsEventTypeList.SCROLL_BOTTOM_EVENT:
       scrollMessages('down')
+      void refreshMessages(state.discordToken, state.currentChannelId!)
       break
 
     case OsEventTypeList.CLICK_EVENT:
@@ -200,7 +216,7 @@ async function handleMessageEvent(type: OsEventTypeList) {
           state.sttUrl,
           (word) => {
             state.transcript += (state.transcript ? ' ' : '') + word
-            void renderStt()
+            void updateTranscript()
           },
           (msg) => {
             appendEventLog(`STT error: ${msg}`)

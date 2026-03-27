@@ -59,15 +59,12 @@ export function createDeltaclawActions(setStatus: SetStatus): AppActions {
             state.channels = await fetchChannels(state.discordToken, state.guildId)
           } else {
             state.channels = [
-              { id: '1', name: 'daily-digest', position: 0 },
-              { id: '2', name: 'alerts', position: 1 },
-              { id: '3', name: 'webapp', position: 2 },
-              { id: '4', name: 'home-server', position: 3 },
-              { id: '5', name: 'side-project', position: 4 },
-              { id: '6', name: 'coder', position: 5 },
-              { id: '7', name: 'researcher', position: 6 },
-              { id: '8', name: 'org-agent', position: 7 },
-              { id: '9', name: 'scheduler', position: 8 },
+              { id: '1', name: 'algemeen', position: 0, lastAuthor: 'jarvis', lastMessage: 'I\'ve analyzed the codebase. The main bottleneck is in the event loop.' },
+              { id: '2', name: 'coder', position: 1, lastAuthor: 'jarvis', lastMessage: 'Refactored the WebSocket handler. 40% faster now.' },
+              { id: '3', name: 'researcher', position: 2, lastAuthor: 'jarvis', lastMessage: 'Found 3 papers on AR interaction patterns.' },
+              { id: '4', name: 'home-server', position: 3, lastAuthor: 'jarvis', lastMessage: 'Backup completed. All services healthy.' },
+              { id: '5', name: 'philosopher', position: 4, lastAuthor: 'jarvis', lastMessage: 'The question of consciousness in AI systems...' },
+              { id: '6', name: 'scheduler', position: 5, lastAuthor: 'jarvis', lastMessage: 'Meeting with the team moved to Thursday.' },
             ]
           }
           appendEventLog(`Loaded ${state.channels.length} channels`)

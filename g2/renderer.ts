@@ -34,7 +34,7 @@ function textContainer(
     isEventCapture: opts.capture ? 1 : 0,
     borderWidth: 0,
     borderColor: 0,
-    borderRdaius: 0,
+    borderRadius: 0,
     paddingLength: opts.padding ?? 4,
   })
 }
@@ -53,7 +53,7 @@ function listContainer(
     isEventCapture: 1,
     borderWidth: 1,
     borderColor: 13,
-    borderRdaius: 6,
+    borderRadius: 6,
     paddingLength: 5,
     itemContainer: new ListItemContainerProperty({
       itemCount: items.length,
@@ -241,16 +241,17 @@ function formatMessages(): string {
 function formatTime(ts: string): string {
   try {
     const d = new Date(ts)
+    if (isNaN(d.getTime())) return ts.slice(0, 5)
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
   } catch {
-    return ''
+    return ts.slice(0, 5)
   }
 }
 
 // -- STT --
 
 export async function renderStt() {
-  const content = `Recording...\n${DIVIDER}\n${state.transcript || '(listening)'}\n\n\nTap: send | DblTap: cancel`
+  const content = `Recording...\n${DIVIDER}\n${state.transcript || '(listening)'}\n\n\n\n\n\n\ntap to send | doubletap to cancel`
 
   await rebuild(2, [
     textContainer(1, 'evt', ' ', { capture: true }),
@@ -259,7 +260,7 @@ export async function renderStt() {
 }
 
 export async function updateTranscript() {
-  const content = `Recording...\n${DIVIDER}\n${state.transcript || '(listening)'}\n\n\nTap: send | DblTap: cancel`
+  const content = `Recording...\n${DIVIDER}\n${state.transcript || '(listening)'}\n\n\n\n\n\n\ntap to send | doubletap to cancel`
 
   if (displayRebuilt) {
     await updateContent(2, 'display', content)

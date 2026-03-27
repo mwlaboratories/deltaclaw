@@ -46,17 +46,16 @@ export function startSttSession(
       const raw = event.data instanceof ArrayBuffer
         ? new TextDecoder().decode(event.data)
         : event.data as string
-      console.log('[stt] recv:', raw)
       const data = JSON.parse(raw)
-      // Try multiple field patterns
       const text = data.text ?? data.word ?? data.transcript ?? data.content
       if (text) {
         onWord(text)
       } else if (data.type === 'error') {
         onError(data.message ?? 'STT error')
       }
+      // Ignore step/progress messages from stt-anywhere
     } catch {
-      // ignore
+      // Ignore non-JSON messages
     }
   }
 
