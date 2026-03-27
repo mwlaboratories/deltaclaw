@@ -4,3 +4,7 @@ dist/
 *.log
 ROADMAP.md
 .vercel
+.claude/
+AGENT.md
+AGENTS.md
+README.md
