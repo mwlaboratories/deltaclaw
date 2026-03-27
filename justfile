@@ -21,11 +21,10 @@ pack:
 
 screenshots:
     #!/usr/bin/env bash
-    set -e
     REPO="$(pwd)"
     DOCS="$REPO/docs"
     # Kill existing
-    pkill -f evenhub-simulator 2>/dev/null || true
+    ps aux | grep evenhub-simulator | grep -v grep | awk '{print $2}' | xargs -r kill 2>/dev/null
     pid=$(ss -tlnp sport = :5173 2>/dev/null | grep -oP 'pid=\K[0-9]+')
     [ -n "$pid" ] && kill $pid 2>/dev/null
     sleep 0.5
@@ -42,7 +41,7 @@ screenshots:
     WY=$(niri msg windows | grep -A15 "ID $GID" | grep "Workspace-view" | grep -oP '\d+' | tail -1)
     WW=$(niri msg windows | grep -A15 "ID $GID" | grep "Window size" | grep -oP '\d+' | head -1)
     WH=$(niri msg windows | grep -A15 "ID $GID" | grep "Window size" | grep -oP '\d+' | tail -1)
-    CX=$((WX+6)); CY=$((WY+45)); CW=$((WW-12)); CH=$((WH-50))
+    CX=$((WX+2)); CY=$((WY+46)); CW=$((WW-4)); CH=$((WH-48))
     CROP="${CW}x${CH}+${CX}+${CY}"
     shot() { nix shell nixpkgs#grim nixpkgs#imagemagick -c bash -c "grim /tmp/dc-f.png && magick /tmp/dc-f.png -crop $CROP $DOCS/dc-$1.png"; }
     key() { nix shell nixpkgs#wtype -c wtype -k "$1"; }
@@ -68,7 +67,7 @@ screenshots:
     key Return; sleep 1
     shot recording
     # Cleanup
-    pkill -f evenhub-simulator 2>/dev/null || true
+    ps aux | grep evenhub-simulator | grep -v grep | awk '{print $2}' | xargs -r kill 2>/dev/null
     pid=$(ss -tlnp sport = :5173 2>/dev/null | grep -oP 'pid=\K[0-9]+')
     [ -n "$pid" ] && kill $pid 2>/dev/null
     echo "Screenshots saved to docs/"
