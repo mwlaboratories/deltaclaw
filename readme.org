@@ -7,7 +7,15 @@ AR glasses interface for [[https://github.com/mwlaboratories/openclaw][openclaw]
   tap → speak → agent receives instructions ✦ hands-free openclaw
 #+end_example
 
-| [[file:docs/dc-welcome.png]] | [[file:docs/dc-channels.png]] | [[file:docs/dc-messages.png]] | [[file:docs/dc-recording.png]] |
+[[file:docs/dc-welcome.png]]
+
+[[file:docs/dc-channels.png]]
+
+[[file:docs/dc-messages.png]]
+
+[[file:docs/dc-philosopher.png]]
+
+[[file:docs/dc-recording.png]]
 
 * Why
 

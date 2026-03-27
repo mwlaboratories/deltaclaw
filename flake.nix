@@ -49,10 +49,13 @@
       in
       {
         devShells.default = pkgs.mkShell {
-          packages = [ fhs ];
+          packages = [ fhs pkgs.just ];
           shellHook = ''
             export DELTACLAW_CWD="$PWD"
-            exec deltaclaw-fhs
+            # Skip exec when running via nix develop -c (non-interactive)
+            if [ -z "$DELTACLAW_NO_FHS" ] && [ -t 0 ]; then
+              exec deltaclaw-fhs
+            fi
           '';
         };
       }

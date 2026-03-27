@@ -42,8 +42,9 @@ const MOCK_MESSAGES: Record<string, Message[]> = {
     { id: 'm2', content: 'status report', author: 'deltaclaw', timestamp: '2026-03-26T08:55:00Z' },
   ],
   '5': [
-    { id: 'm1', content: 'The question of consciousness in AI systems remains fundamentally tied to the hard problem - we can model behavior without understanding qualia.', author: 'jarvis', timestamp: '2026-03-26T23:30:00Z' },
-    { id: 'm2', content: 'what do you think about AI consciousness?', author: 'deltaclaw', timestamp: '2026-03-26T23:25:00Z' },
+    { id: 'm1', content: 'A is A. The glasses exist. You are wearing them. To deny this is to deny existence itself. The AR overlay is not a contradiction - it is reality augmented by the rational mind.', author: 'jarvis', timestamp: '2026-03-26T23:30:00Z' },
+    { id: 'm2', content: 'are AR glasses objectively good?', author: 'deltaclaw', timestamp: '2026-03-26T23:25:00Z' },
+    { id: 'm3', content: 'The man who refuses to wear smart glasses is the man who refuses to use his mind. Technology is not optional - it is the tool of the rational being.', author: 'jarvis', timestamp: '2026-03-26T23:35:00Z' },
   ],
   '6': [
     { id: 'm1', content: 'Meeting with the team moved to Thursday 2pm. Your afternoon today is clear.', author: 'jarvis', timestamp: '2026-03-27T08:00:00Z' },

@@ -63,7 +63,7 @@ export function createDeltaclawActions(setStatus: SetStatus): AppActions {
               { id: '2', name: 'coder', position: 1, lastAuthor: 'jarvis', lastMessage: 'Refactored the WebSocket handler. 40% faster now.' },
               { id: '3', name: 'researcher', position: 2, lastAuthor: 'jarvis', lastMessage: 'Found 3 papers on AR interaction patterns.' },
               { id: '4', name: 'home-server', position: 3, lastAuthor: 'jarvis', lastMessage: 'Backup completed. All services healthy.' },
-              { id: '5', name: 'philosopher', position: 4, lastAuthor: 'jarvis', lastMessage: 'The question of consciousness in AI systems...' },
+              { id: '5', name: 'philosopher', position: 4, lastAuthor: 'jarvis', lastMessage: 'A is A. The glasses exist. You are wearing them. Deal with it.' },
               { id: '6', name: 'scheduler', position: 5, lastAuthor: 'jarvis', lastMessage: 'Meeting with the team moved to Thursday.' },
             ]
           }
