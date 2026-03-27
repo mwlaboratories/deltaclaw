@@ -11,7 +11,11 @@ AR glasses interface for [[https://github.com/mwlaboratories/openclaw][openclaw]
 
 [[file:docs/dc-channels.png]]
 
+[[file:docs/dc-channels-home-server.png]]
+
 [[file:docs/dc-home-server.png]]
+
+[[file:docs/dc-channels-second-brain.png]]
 
 [[file:docs/dc-second-brain.png]]
 
