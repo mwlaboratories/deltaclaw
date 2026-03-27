@@ -60,11 +60,12 @@ export function createDeltaclawActions(setStatus: SetStatus): AppActions {
           } else {
             state.channels = [
               { id: '1', name: 'general', position: 0, lastAuthor: 'jarvis', lastMessage: 'I\'ve analyzed the codebase. The main bottleneck is in the event loop.' },
-              { id: '2', name: 'coder', position: 1, lastAuthor: 'jarvis', lastMessage: 'Refactored the WebSocket handler. 40% faster now.' },
+              { id: '2', name: 'coder', position: 1, lastAuthor: 'jarvis', lastMessage: 'WebSocket handler refactored with connection pooling and exponential backoff.' },
               { id: '3', name: 'researcher', position: 2, lastAuthor: 'jarvis', lastMessage: 'Found 3 papers on AR interaction patterns.' },
-              { id: '4', name: 'home-server', position: 3, lastAuthor: 'jarvis', lastMessage: 'Backup completed. All services healthy.' },
+              { id: '4', name: 'home-server', position: 3, lastAuthor: 'jarvis', lastMessage: 'Nightly backup completed. All 7 services healthy. Disk at 42%.' },
               { id: '5', name: 'philosopher', position: 4, lastAuthor: 'jarvis', lastMessage: 'A is A. The glasses exist. You are wearing them. Deal with it.' },
-              { id: '6', name: 'scheduler', position: 5, lastAuthor: 'jarvis', lastMessage: 'Meeting with the team moved to Thursday.' },
+              { id: '6', name: 'scheduler', position: 5, lastAuthor: 'jarvis', lastMessage: 'Meeting moved to Thursday 2pm. Afternoon clear for deep work.' },
+              { id: '7', name: 'second-brain', position: 6, lastAuthor: 'jarvis', lastMessage: 'The extended-mind cluster is dense - Clark & Chalmers links to your daily notes.' },
             ]
           }
           appendEventLog(`Loaded ${state.channels.length} channels`)

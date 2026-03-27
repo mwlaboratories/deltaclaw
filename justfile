@@ -45,25 +45,28 @@ screenshots:
     CROP="${CW}x${CH}+${CX}+${CY}"
     shot() { nix shell nixpkgs#grim nixpkgs#imagemagick -c bash -c "grim /tmp/dc-f.png && magick /tmp/dc-f.png -crop $CROP $DOCS/dc-$1.png"; }
     key() { nix shell nixpkgs#wtype -c wtype -k "$1"; }
+    dblkey() { nix shell nixpkgs#wtype -c wtype -k "$1" -k "$1"; }
     niri msg action focus-window --id $GID; sleep 0.3
-    # Welcome
+    # 1. Welcome
     shot welcome
-    # Channels
+    # 2. Channels - general selected (tap to enter)
     key Return; sleep 1
     shot channels
-    # Scroll to philosopher
-    key Down; sleep 0.1; key Down; sleep 0.1; key Down; sleep 0.1; key Down; sleep 0.3
-    shot channels-scroll
-    # Enter philosopher
+    # 3. Scroll to home-server (idx 3), show preview
+    key Down; sleep 0.3; key Down; sleep 0.3; key Down; sleep 0.5
+    shot channels-home-server
+    # 4. Enter home-server
     key Return; sleep 1
-    shot philosopher
-    # Back to channels
-    key Return; sleep 0.1; key Return; sleep 1
-    # Up to coder
-    key Up; sleep 0.1; key Up; sleep 0.1; key Up; sleep 0.3
+    shot home-server
+    # 5. Back to channels
+    dblkey Return; sleep 1.5
+    # 6. Scroll to second-brain (from idx 3, +3)
+    key Down; sleep 0.3; key Down; sleep 0.3; key Down; sleep 0.5
+    shot channels-second-brain
+    # 7. Enter second-brain
     key Return; sleep 1
-    shot messages
-    # Record
+    shot second-brain
+    # 8. Voice reply (tap)
     key Return; sleep 1
     shot recording
     # Cleanup

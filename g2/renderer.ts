@@ -117,15 +117,16 @@ async function updateContent(id: number, name: string, content: string) {
 
 function paginate(text: string, maxChars = MAX_CHARS, maxLines = MAX_LINES): string[] {
   const lines = text.split('\n')
+  // Build pages back-to-front so the last page (newest messages) is always full
   const pages: string[] = []
   let page = ''
   let lineCount = 0
 
-  for (const line of lines) {
-    const next = page ? page + '\n' + line : line
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const next = page ? lines[i] + '\n' + page : lines[i]
     if (next.length > maxChars || lineCount >= maxLines) {
       if (page) pages.push(page)
-      page = line
+      page = lines[i]
       lineCount = 1
     } else {
       page = next
@@ -133,6 +134,7 @@ function paginate(text: string, maxChars = MAX_CHARS, maxLines = MAX_LINES): str
     }
   }
   if (page) pages.push(page)
+  pages.reverse()
   return pages.length ? pages : ['']
 }
 
