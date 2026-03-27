@@ -26,43 +26,28 @@ export async function fetchChannels(token: string, guildId: string): Promise<Cha
 
 const MOCK_MESSAGES: Record<string, Message[]> = {
   '1': [
-    { id: 'm1', content: 'Daily summary ready. 3 PRs merged, 2 pending review.', author: 'digest-bot', timestamp: '08:00' },
-    { id: 'm2', content: 'Coder finished the auth refactor. Researcher found 4 new leads.', author: 'digest-bot', timestamp: '08:01' },
+    { id: 'm1', content: 'I\'ve analyzed the codebase. The main bottleneck is in the event loop - switching to async dispatch should give us 3x throughput.', author: 'jarvis', timestamp: '2026-03-27T01:30:00Z' },
+    { id: 'm2', content: 'check the event loop in the glasses app', author: 'deltaclaw', timestamp: '2026-03-27T01:29:00Z' },
   ],
   '2': [
-    { id: 'm1', content: 'Trending: new Claude model dropped, 17k likes in 2h', author: 'alert-bot', timestamp: '14:22' },
-    { id: 'm2', content: 'Competitor launched a similar feature, check #researcher', author: 'alert-bot', timestamp: '15:10' },
+    { id: 'm1', content: 'Refactored the WebSocket handler. Connection pooling is in, reconnect logic handles edge cases. Tests passing.', author: 'jarvis', timestamp: '2026-03-27T00:45:00Z' },
+    { id: 'm2', content: 'refactor the websocket handler and add reconnect', author: 'deltaclaw', timestamp: '2026-03-27T00:40:00Z' },
   ],
   '3': [
-    { id: 'm1', content: 'Deployed v2.3 to staging. Auth flow updated.', author: 'coder', timestamp: '11:30' },
-    { id: 'm2', content: 'you: looks good, ship it to prod', author: 'you', timestamp: '11:45' },
-    { id: 'm3', content: 'Done. Production deploy complete, no errors.', author: 'coder', timestamp: '11:47' },
+    { id: 'm1', content: 'Found 3 relevant papers on AR interaction patterns. Key finding: gesture recognition latency under 100ms is critical for user satisfaction.', author: 'jarvis', timestamp: '2026-03-26T22:15:00Z' },
+    { id: 'm2', content: 'research AR interaction patterns', author: 'deltaclaw', timestamp: '2026-03-26T22:10:00Z' },
   ],
   '4': [
-    { id: 'm1', content: 'Nginx config updated. SSL certs renewed.', author: 'coder', timestamp: '09:00' },
-    { id: 'm2', content: 'Backup job failed last night, investigating.', author: 'coder', timestamp: '09:15' },
-    { id: 'm3', content: 'Fixed. Disk was at 95%, cleaned up old logs.', author: 'coder', timestamp: '09:30' },
+    { id: 'm1', content: 'All services healthy. Backup completed successfully. Disk usage at 42%.', author: 'jarvis', timestamp: '2026-03-26T09:00:00Z' },
+    { id: 'm2', content: 'status report', author: 'deltaclaw', timestamp: '2026-03-26T08:55:00Z' },
   ],
   '5': [
-    { id: 'm1', content: 'Prototype ready. Basic UI working, needs API integration.', author: 'coder', timestamp: '16:00' },
-    { id: 'm2', content: 'Added three endpoints, tests passing.', author: 'coder', timestamp: '17:20' },
+    { id: 'm1', content: 'The question of consciousness in AI systems remains fundamentally tied to the hard problem - we can model behavior without understanding qualia.', author: 'jarvis', timestamp: '2026-03-26T23:30:00Z' },
+    { id: 'm2', content: 'what do you think about AI consciousness?', author: 'deltaclaw', timestamp: '2026-03-26T23:25:00Z' },
   ],
   '6': [
-    { id: 'm1', content: 'Refactored the event loop. 40% faster now.', author: 'coder', timestamp: '13:00' },
-    { id: 'm2', content: 'Working on the WebSocket reconnect logic next.', author: 'coder', timestamp: '13:45' },
-  ],
-  '7': [
-    { id: 'm1', content: 'Found 3 competitors with similar pricing models.', author: 'researcher', timestamp: '10:00' },
-    { id: 'm2', content: 'Full report pinned. Key insight: none support offline mode.', author: 'researcher', timestamp: '10:30' },
-  ],
-  '8': [
-    { id: 'm1', content: 'Captured meeting notes from standup.', author: 'org-agent', timestamp: '09:30' },
-    { id: 'm2', content: 'Reminder: dentist appointment Thursday 2pm', author: 'org-agent', timestamp: '10:00' },
-    { id: 'm3', content: 'Added 3 new tasks to your agenda for this week.', author: 'org-agent', timestamp: '10:05' },
-  ],
-  '9': [
-    { id: 'm1', content: 'Rescheduled Friday meeting to Monday 10am.', author: 'scheduler', timestamp: '11:00' },
-    { id: 'm2', content: 'Your afternoon is clear. Want me to block focus time?', author: 'scheduler', timestamp: '11:15' },
+    { id: 'm1', content: 'Meeting with the team moved to Thursday 2pm. Your afternoon today is clear.', author: 'jarvis', timestamp: '2026-03-27T08:00:00Z' },
+    { id: 'm2', content: 'reschedule the team meeting', author: 'deltaclaw', timestamp: '2026-03-27T07:55:00Z' },
   ],
 }
 
