@@ -1,4 +1,4 @@
-import { createDeltaclawActions } from './main'
+import { createDeltaclawActions } from './app'
 import type { AppModule } from '../shared/app-types'
 
 export const app: AppModule = {

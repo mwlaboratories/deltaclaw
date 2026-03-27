@@ -1,4 +1,4 @@
-import type { Channel, Message } from './state'
+import type { Channel, Message } from '../state/contracts'
 
 const DISCORD_API = '/discord'
 
@@ -136,7 +136,7 @@ type RawMessage = {
   sticker_items?: Array<{ name: string }>
 }
 
-function extractContent(msg: RawMessage): string {
+export function extractContent(msg: RawMessage): string {
   const parts: string[] = []
   if (msg.content) parts.push(msg.content)
   if (msg.embeds?.length) {
