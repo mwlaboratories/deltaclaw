@@ -254,6 +254,10 @@ function SetupGuide({ show }: { show: boolean }) {
           Right-click your server name - Copy Server ID
           <div className="dc-hint">enable Developer Mode in Discord settings first</div>
         </li>
+        <li>
+          In <code>~/.openclaw/openclaw.json</code> set <code>"allowBots": true</code>
+          <div className="dc-hint">allows the bot to see messages from other bots/agents</div>
+        </li>
       </ol>
     </div>
   )

@@ -8,187 +8,298 @@ import {
 } from '@evenrealities/even_hub_sdk'
 import { state, bridge } from './state'
 
-// G2 display: 576x288
+// G2 display
 const W = 576
 const H = 288
-const HEADER_H = 28
-const FOOTER_H = 26
-const GAP = 4
-const BODY_TOP = HEADER_H + GAP
-const BODY_H = H - HEADER_H - FOOTER_H - GAP * 2
+const MAX_CHARS = 380
+const MAX_LINES = 9
+const DIVIDER = String.fromCharCode(9472).repeat(28)
 
-// Dual panel
-const LIST_W = 260
-const PREVIEW_X = LIST_W + GAP
-const PREVIEW_W = W - LIST_W - GAP
+let displayRebuilt = false
 
-type TextSetup = {
-  id: number; name: string; content: string
-  x?: number; y?: number; w?: number; h?: number
-  capture?: boolean
+// -- Low-level helpers --
+
+function textContainer(
+  id: number, name: string, content: string,
+  opts: { x?: number; y?: number; w?: number; h?: number; capture?: boolean; padding?: number } = {},
+): TextContainerProperty {
+  return new TextContainerProperty({
+    containerID: id,
+    containerName: name,
+    content,
+    xPosition: opts.x ?? 0,
+    yPosition: opts.y ?? 0,
+    width: opts.w ?? W,
+    height: opts.h ?? H,
+    isEventCapture: opts.capture ? 1 : 0,
+    borderWidth: 0,
+    borderColor: 0,
+    borderRdaius: 0,
+    paddingLength: opts.padding ?? 4,
+  })
 }
 
-type ListSetup = {
-  id: number; name: string; items: string[]
-  x?: number; y?: number; w?: number; h?: number
+function listContainer(
+  id: number, name: string, items: string[],
+  opts: { x?: number; y?: number; w?: number; h?: number } = {},
+): ListContainerProperty {
+  return new ListContainerProperty({
+    containerID: id,
+    containerName: name,
+    xPosition: opts.x ?? 0,
+    yPosition: opts.y ?? 0,
+    width: opts.w ?? W,
+    height: opts.h ?? H,
+    isEventCapture: 1,
+    borderWidth: 1,
+    borderColor: 13,
+    borderRdaius: 6,
+    paddingLength: 5,
+    itemContainer: new ListItemContainerProperty({
+      itemCount: items.length,
+      itemWidth: 560,
+      isItemSelectBorderEn: 1,
+      itemName: items,
+    }),
+  })
 }
 
-type ContainerSetup = {
-  count: number
-  texts?: TextSetup[]
-  lists?: ListSetup[]
-}
-
-async function rebuild(setup: ContainerSetup) {
+async function rebuild(
+  count: number,
+  textObject: TextContainerProperty[],
+  listObject: ListContainerProperty[] = [],
+) {
   if (!bridge) return
-
-  const textObject = (setup.texts ?? []).map(
-    (t) =>
-      new TextContainerProperty({
-        containerID: t.id,
-        containerName: t.name,
-        content: t.content,
-        xPosition: t.x ?? 0,
-        yPosition: t.y ?? 0,
-        width: t.w ?? W,
-        height: t.h ?? H,
-        isEventCapture: t.capture ? 1 : 0,
-        paddingLength: 4,
-      }),
-  )
-
-  const listObject = (setup.lists ?? []).map(
-    (l) =>
-      new ListContainerProperty({
-        containerID: l.id,
-        containerName: l.name,
-        xPosition: l.x ?? 0,
-        yPosition: l.y ?? BODY_TOP,
-        width: l.w ?? W,
-        height: l.h ?? BODY_H,
-        borderWidth: 1,
-        borderColor: 5,
-        borderRdaius: 4,
-        paddingLength: 4,
-        isEventCapture: 1,
-        itemContainer: new ListItemContainerProperty({
-          itemCount: l.items.length,
-          itemWidth: (l.w ?? W) - 10,
-          isItemSelectBorderEn: 1,
-          itemName: l.items,
-        }),
-      }),
-  )
+  displayRebuilt = false
 
   if (!state.startupRendered) {
     await bridge.createStartUpPageContainer(
-      new CreateStartUpPageContainer({ containerTotalNum: setup.count, textObject, listObject }),
+      new CreateStartUpPageContainer({ containerTotalNum: count, textObject, listObject }),
     )
     state.startupRendered = true
   } else {
     await bridge.rebuildPageContainer(
-      new RebuildPageContainer({ containerTotalNum: setup.count, textObject, listObject }),
+      new RebuildPageContainer({ containerTotalNum: count, textObject, listObject }),
     )
   }
+  displayRebuilt = true
 }
 
-async function updateText(id: number, name: string, content: string) {
+async function updateContent(id: number, name: string, content: string) {
   if (!bridge) return
   await bridge.textContainerUpgrade(
     new TextContainerUpgrade({ containerID: id, containerName: name, content }),
   )
 }
 
+// -- Pagination --
+
+function paginate(text: string, maxChars = MAX_CHARS, maxLines = MAX_LINES): string[] {
+  const lines = text.split('\n')
+  const pages: string[] = []
+  let page = ''
+  let lineCount = 0
+
+  for (const line of lines) {
+    const next = page ? page + '\n' + line : line
+    if (next.length > maxChars || lineCount >= maxLines) {
+      if (page) pages.push(page)
+      page = line
+      lineCount = 1
+    } else {
+      page = next
+      lineCount++
+    }
+  }
+  if (page) pages.push(page)
+  return pages.length ? pages : ['']
+}
+
 // -- Welcome --
 
 export async function renderWelcome() {
-  await rebuild({
-    count: 1,
-    texts: [
-      { id: 1, name: 'welcome', content: '\n\n\n      DELTACLAW\n\n      tap to enter', w: W, h: H, capture: true },
-    ],
-  })
+  await rebuild(2, [
+    // Invisible event capture overlay
+    textContainer(1, 'evt', ' ', { capture: true }),
+    // Display content
+    textContainer(2, 'display', '\n\n\n        DELTACLAW\n\n        tap to enter'),
+  ])
 }
 
-// -- Channel browser --
-// List on left (SDK handles scroll natively), preview on right (no event capture = no scroll bars)
+// -- Channel list with preview --
+
+const LIST_W = 250
+const PREVIEW_X = LIST_W + 8
+const PREVIEW_W = W - LIST_W - 8
+const VISIBLE_CHANNELS = 9
 
 export async function renderChannelList() {
-  const items = state.channels.map((ch) => `#${ch.name}`)
+  await rebuild(3, [
+    textContainer(1, 'evt', ' ', { capture: true }),
+    textContainer(2, 'channels', buildChannelList(), { w: LIST_W }),
+    textContainer(3, 'preview', buildPreview(), { x: PREVIEW_X, w: PREVIEW_W }),
+  ])
+}
 
-  await rebuild({
-    count: 4,
-    texts: [
-      { id: 1, name: 'header', content: 'Deltaclaw', y: 0, h: HEADER_H },
-      { id: 3, name: 'preview', content: buildPreview(), x: PREVIEW_X, y: BODY_TOP, w: PREVIEW_W, h: BODY_H },
-      { id: 4, name: 'footer', content: 'Tap: open | DblTap: home', y: H - FOOTER_H, h: FOOTER_H },
-    ],
-    lists: [
-      { id: 2, name: 'channels', items, x: 0, y: BODY_TOP, w: LIST_W, h: BODY_H },
-    ],
-  })
+function buildChannelList(): string {
+  const total = state.channels.length
+  if (!total) return '(no channels)'
+
+  const half = Math.floor(VISIBLE_CHANNELS / 2)
+  let start = Math.max(0, state.selectedChannel - half)
+  let end = start + VISIBLE_CHANNELS
+  if (end > total) {
+    end = total
+    start = Math.max(0, end - VISIBLE_CHANNELS)
+  }
+
+  return state.channels.slice(start, end).map((ch, i) => {
+    const idx = start + i
+    const marker = idx === state.selectedChannel ? '>' : ' '
+    return `${marker} #${ch.name}`
+  }).join('\n')
 }
 
 function buildPreview(): string {
   const ch = state.channels[state.selectedChannel]
   if (!ch) return ''
-  if (!ch.lastAuthor || !ch.lastMessage) return `#${ch.name}\n\n(no messages)`
-  return `#${ch.name}\n\n${ch.lastAuthor}:\n${truncate(ch.lastMessage, 60)}`
-}
-
-export async function updateChannelPreview() {
-  await updateText(3, 'preview', buildPreview())
-}
-
-export async function updateChannelSelection() {
-  await updateChannelPreview()
+  if (!ch.lastAuthor || !ch.lastMessage) return '(no messages)'
+  return `${ch.lastAuthor}:\n${ch.lastMessage.slice(0, 120)}`
 }
 
 // -- Messages --
 
+let messagePages: string[] = []
+let messagePage = 0
+
+let messageTitle = ''
+
 export async function renderMessages() {
   const ch = state.channels[state.selectedChannel]
-  const header = ch ? `#${ch.name}` : 'Messages'
+  messageTitle = ch ? `#${ch.name}` : 'Messages'
 
-  await rebuild({
-    count: 3,
-    texts: [
-      { id: 1, name: 'header', content: header, y: 0, h: HEADER_H },
-      { id: 2, name: 'body', content: formatMessages(), y: BODY_TOP, h: BODY_H, capture: true },
-      { id: 3, name: 'footer', content: 'Tap: record | DblTap: back', y: H - FOOTER_H, h: FOOTER_H },
-    ],
-  })
+  const body = formatMessages()
+  messagePages = paginate(body, MAX_CHARS - 60, 7)
+
+  // Find first page containing the latest message (newest = last in formatted text)
+  // Discord returns newest first, we reverse, so messages[0] is newest and appears last
+  const latestMsg = state.messages[0]
+  if (latestMsg && messagePages.length > 1) {
+    const needle = `${latestMsg.author} (${formatTime(latestMsg.timestamp)}):`
+    // Search from the end backwards to find where latest msg starts
+    let found = -1
+    for (let i = 0; i < messagePages.length; i++) {
+      if (messagePages[i].includes(needle)) found = i
+    }
+    messagePage = found >= 0 ? found : messagePages.length - 1
+  } else {
+    messagePage = messagePages.length - 1
+  }
+
+  await rebuild(2, [
+    textContainer(1, 'evt', ' ', { capture: true }),
+    textContainer(2, 'display', buildMessageContent(), { padding: 4 }),
+  ])
+}
+
+function buildMessageContent(): string {
+  const page = messagePages[messagePage] ?? ''
+  const pageNum = messagePages.length > 1
+    ? ` [${messagePage + 1}/${messagePages.length}]`
+    : ''
+  return `${messageTitle}${pageNum}\n${DIVIDER}\n${page}`
+}
+
+export function scrollMessages(direction: 'up' | 'down') {
+  if (messagePages.length <= 1) return
+
+  if (direction === 'up' && messagePage > 0) {
+    messagePage--
+  } else if (direction === 'down' && messagePage < messagePages.length - 1) {
+    messagePage++
+  } else {
+    return
+  }
+
+  void updateContent(2, 'display', buildMessageContent())
 }
 
 function formatMessages(): string {
   if (!state.messages.length) return 'No messages'
+
+  // Discord returns newest first, reverse for chronological
   return state.messages
-    .slice(0, 8)
+    .slice()
     .reverse()
-    .map((m) => `${m.author}: ${truncate(m.content, 80)}`)
+    .map((m) => {
+      const time = formatTime(m.timestamp)
+      return `${m.author} (${time}): ${m.content}`
+    })
     .join('\n')
+}
+
+function formatTime(ts: string): string {
+  try {
+    const d = new Date(ts)
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+  } catch {
+    return ''
+  }
 }
 
 // -- STT --
 
 export async function renderStt() {
-  await rebuild({
-    count: 3,
-    texts: [
-      { id: 1, name: 'header', content: 'Recording...', y: 0, h: HEADER_H },
-      { id: 2, name: 'body', content: state.transcript || '(listening)', y: BODY_TOP, h: BODY_H, capture: true },
-      { id: 3, name: 'footer', content: 'Tap: send | DblTap: back', y: H - FOOTER_H, h: FOOTER_H },
-    ],
-  })
+  const content = `Recording...\n${DIVIDER}\n${state.transcript || '(listening)'}\n\n\nTap: send | DblTap: cancel`
+
+  await rebuild(2, [
+    textContainer(1, 'evt', ' ', { capture: true }),
+    textContainer(2, 'display', content, { padding: 4 }),
+  ])
 }
 
 export async function updateTranscript() {
-  await updateText(2, 'body', state.transcript || '(listening)')
+  const content = `Recording...\n${DIVIDER}\n${state.transcript || '(listening)'}\n\n\nTap: send | DblTap: cancel`
+
+  if (displayRebuilt) {
+    await updateContent(2, 'display', content)
+  }
 }
 
-// --
+// -- Live updates --
 
-function truncate(text: string, maxLen: number): string {
-  if (text.length <= maxLen) return text
-  return text.slice(0, maxLen - 3) + '...'
+export async function refreshMessages(token: string, channelId: string) {
+  if (state.view !== 'messages') return
+  try {
+    const res = await fetch(`/discord/channels/${channelId}/messages?limit=25`, {
+      headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) return
+    const raw = await res.json()
+    const newMsgs = raw.map((m: any) => ({
+      id: m.id,
+      content: m.content || '[attachment]',
+      author: m.author.username,
+      timestamp: m.timestamp,
+    }))
+    if (newMsgs[0]?.id === state.messages[0]?.id) return
+    const wasOnLastPage = messagePage === messagePages.length - 1
+    state.messages = newMsgs
+    messagePages = paginate(formatMessages(), MAX_CHARS - 60, 7)
+    if (wasOnLastPage) messagePage = messagePages.length - 1
+    await updateContent(2, 'display', buildMessageContent())
+  } catch {}
+}
+
+// -- Exports for event handler --
+
+export async function updateChannelPreview() {
+  if (displayRebuilt) {
+    await updateContent(2, 'channels', buildChannelList())
+    await updateContent(3, 'preview', buildPreview())
+  }
+}
+
+export async function updateChannelSelection() {
+  await updateChannelPreview()
 }

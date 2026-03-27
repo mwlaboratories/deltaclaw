@@ -1,15 +1,33 @@
 import { OsEventTypeList, type EvenHubEvent } from '@evenrealities/even_hub_sdk'
 import { state, bridge } from './state'
 import { fetchMessages, sendMessage } from './discord'
-import { renderWelcome, renderChannelList, renderMessages, renderStt } from './renderer'
+import { renderWelcome, renderChannelList, renderMessages, renderStt, scrollMessages, refreshMessages, updateChannelSelection } from './renderer'
 import { startSttSession, type SttSession } from './stt'
 import { appendEventLog } from '../shared/log'
 
 const VIEW_CHANGE_GUARD_MS = 1000
+const POLL_INTERVAL_MS = 1000
 let lastViewChangeTime = 0
 let selectedIndex = 0
 let sttSession: SttSession | null = null
 let busy = false
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+function startPolling() {
+  stopPolling()
+  pollTimer = setInterval(() => {
+    if (state.view === 'messages' && state.currentChannelId) {
+      void refreshMessages(state.discordToken, state.currentChannelId)
+    }
+  }, POLL_INTERVAL_MS)
+}
+
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
 
 function changeView(view: 'welcome' | 'channels' | 'messages' | 'stt') {
   state.view = view
@@ -26,7 +44,8 @@ function resolveIndex(event: EvenHubEvent): number {
     selectedIndex = idx
     return idx
   }
-  return selectedIndex
+  // SDK omits currentSelectItemIndex for item 0
+  return 0
 }
 
 function resolveEventType(event: EvenHubEvent): OsEventTypeList | undefined {
@@ -75,10 +94,7 @@ export function onEvenHubEvent(event: EvenHubEvent) {
   const eventType = resolveEventType(event)
   if (eventType === undefined) return
 
-  // Prevent re-entrant handling
   if (busy) return
-
-  appendEventLog(`Event: ${eventType} view=${state.view}`)
 
   switch (state.view) {
     case 'welcome':
@@ -98,15 +114,30 @@ export function onEvenHubEvent(event: EvenHubEvent) {
 
 async function handleWelcomeEvent(type: OsEventTypeList) {
   if (type === OsEventTypeList.CLICK_EVENT || type === OsEventTypeList.DOUBLE_CLICK_EVENT) {
+    selectedIndex = 0
     changeView('channels')
     await renderChannelList()
   }
 }
 
-async function handleChannelEvent(event: EvenHubEvent, type: OsEventTypeList) {
+async function handleChannelEvent(_event: EvenHubEvent, type: OsEventTypeList) {
   if (viewChangeGuarded()) return
 
   switch (type) {
+    case OsEventTypeList.SCROLL_TOP_EVENT:
+      state.selectedChannel = state.selectedChannel > 0
+        ? state.selectedChannel - 1
+        : state.channels.length - 1
+      await updateChannelSelection()
+      break
+
+    case OsEventTypeList.SCROLL_BOTTOM_EVENT:
+      state.selectedChannel = state.selectedChannel < state.channels.length - 1
+        ? state.selectedChannel + 1
+        : 0
+      await updateChannelSelection()
+      break
+
     case OsEventTypeList.DOUBLE_CLICK_EVENT:
       changeView('welcome')
       await renderWelcome()
@@ -116,19 +147,20 @@ async function handleChannelEvent(event: EvenHubEvent, type: OsEventTypeList) {
       if (busy) return
       busy = true
       try {
-        state.selectedChannel = resolveIndex(event)
         const ch = state.channels[state.selectedChannel]
         if (!ch) return
         state.currentChannelId = ch.id
         changeView('messages')
-        appendEventLog(`Opening #${ch.name}`)
+        appendEventLog(`#${ch.name}`)
         try {
           state.messages = await fetchMessages(state.discordToken, ch.id)
+          appendEventLog(`${state.messages.length} msgs loaded`)
         } catch (err) {
           appendEventLog(`Error: ${err}`)
           state.messages = []
         }
         await renderMessages()
+        startPolling()
       } finally {
         busy = false
       }
@@ -141,10 +173,19 @@ async function handleMessageEvent(type: OsEventTypeList) {
   if (viewChangeGuarded()) return
 
   switch (type) {
+    case OsEventTypeList.SCROLL_TOP_EVENT:
+      scrollMessages('up')
+      break
+
+    case OsEventTypeList.SCROLL_BOTTOM_EVENT:
+      scrollMessages('down')
+      break
+
     case OsEventTypeList.CLICK_EVENT:
       // Start STT recording
       if (busy) return
       busy = true
+      stopPolling()
       try {
         changeView('stt')
         state.transcript = ''
@@ -172,6 +213,7 @@ async function handleMessageEvent(type: OsEventTypeList) {
 
     case OsEventTypeList.DOUBLE_CLICK_EVENT:
       // Back to channel list
+      stopPolling()
       await stopRecording()
       changeView('channels')
       state.currentChannelId = null

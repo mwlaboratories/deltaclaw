@@ -29,7 +29,6 @@ async function loadChannelPreviews(setStatus: SetStatus) {
   if (state.view === 'channels') {
     await updateChannelPreview()
   }
-  appendEventLog('Previews loaded')
 }
 
 export function createDeltaclawActions(setStatus: SetStatus): AppActions {

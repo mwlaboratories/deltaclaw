@@ -97,7 +97,7 @@ function extractContent(msg: RawMessage): string {
 export async function fetchMessages(
   token: string,
   channelId: string,
-  limit = 10,
+  limit = 25,
 ): Promise<Message[]> {
   if (!token) return MOCK_MESSAGES[channelId] ?? []
 
