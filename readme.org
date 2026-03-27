@@ -1,10 +1,10 @@
 #+title: deltaclaw
-#+description: Control openclaw from AR glasses, powered by voice.
+#+description: Discord agent interface for Even G2 glasses.
 
-AR glasses interface for [[https://github.com/mwlaboratories/openclaw][openclaw]]. Talk to your AI agents hands-free through [[https://www.evenrealities.com/][EvenRealities G2]] goggles.
+Turn a private Discord server into a voice-controlled AI agent hub on your [[https://www.evenrealities.com/][EvenRealities G2]] glasses.
 
 #+begin_example
-  tap → speak → agent receives instructions ✦ hands-free openclaw
+  scroll channels → tap → speak → agent receives instructions
 #+end_example
 
 [[file:docs/dc-welcome.png]]
@@ -23,14 +23,15 @@ AR glasses interface for [[https://github.com/mwlaboratories/openclaw][openclaw]
 
 * Why
 
-One of the coolest ways to control openclaw is through Discord ([[https://youtu.be/vxpuLIA17q4][demo]]). Unlike a single Telegram or WhatsApp chat where everything gets lost in one stream, Discord gives you channels. Each channel is a separate agent, project, or workflow with its own history and pinned artifacts. Agents can run 24/7, chain outputs across channels, and stay organized.
+[[https://openclaw.com][OpenClaw]] connects to Discord natively. Tell it to set up in your server and you have a multi-agent operating system in minutes ([[https://youtu.be/vxpuLIA17q4][Alex Finn's walkthrough]]). Each channel is a separate agent with its own history and pinned artifacts. Coding agents, stock research, daily digests, competitor analysis - all running 24/7, chaining outputs across channels.
 
-deltaclaw puts all of that in your glasses:
+deltaclaw puts all of that on your glasses:
 
-- *Multichannel* : scroll between projects, each channel is a different agent/context
+- *Multichannel* : scroll between agents, each channel is a different agent/context
 - *Parallel agents* : coding agent in one channel, research agent in another, all running
 - *Persistent history* : full conversation per channel, agents pick up where you left off
 - *Voice-first* : tap to record, speak, tap to send. No typing, no phone, no screen
+- *Hey Even* : hands-free voice commands route to your main channel without opening the app
 
 * How it works
 
@@ -51,16 +52,16 @@ deltaclaw puts all of that in your glasses:
          Tailscale / LAN / Internet
                        │
        ┌───────────────┼───────────────┐
-       │                               │
-       ▼                               ▼
-┌──────────────┐              ┌──────────────┐
-│  Discord API │              │ stt-anywhere  │
-│  (channels,  │              │ (optional)    │
-│   messages)  │              │              │
-└──────────────┘              │ your GPU,    │
-                              │ ~500ms,      │
-                              │ free, local  │
-                              └──────────────┘
+       │               │               │
+       ▼               ▼               ▼
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│  Discord API │ │ stt-anywhere │ │ Hey Even     │
+│  (channels,  │ │ (optional)   │ │ (Vercel fn)  │
+│   messages)  │ │              │ │              │
+└──────────────┘ │ your GPU,    │ │ bridges Even │
+                 │ ~500ms,      │ │ AI to your   │
+                 │ free, local  │ │ Discord      │
+                 └──────────────┘ └──────────────┘
 #+end_example
 
 ** User flow
@@ -70,6 +71,8 @@ deltaclaw puts all of that in your glasses:
 3. Read messages in the channel
 4. Tap to record, speak your message
 5. Tap to send (or double-tap to cancel)
+
+Or say "Hey Even" for hands-free access to your main channel without opening the app.
 
 * Architecture
 
@@ -88,7 +91,7 @@ deltaclaw/
 └── shared/           Shared types and logging
 #+end_example
 
-The glasses app talks directly to the Discord API (bot token configured in settings). For speech-to-text it connects to [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] over WebSocket, or a cloud STT provider.
+The glasses app talks to the Discord API with a bot token configured in settings. For speech-to-text it connects to [[https://github.com/mwlaboratories/stt-anywhere][stt-anywhere]] over WebSocket, or a cloud STT provider. "Hey Even" voice commands go through a Vercel serverless function that bridges Even's native AI to your Discord.
 
 * Prerequisites
 
@@ -146,3 +149,4 @@ Launches the Even Hub simulator for local development without glasses.
 - [[https://evenhub.evenrealities.com/][Even Hub SDK]] (=@evenrealities/even_hub_sdk= v0.0.9)
 - Even Hub CLI + Simulator
 - WebSocket for STT streaming
+- Vercel serverless function for Hey Even
