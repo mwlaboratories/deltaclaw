@@ -5,8 +5,11 @@ import {
   TextContainerProperty,
   ListContainerProperty,
   ListItemContainerProperty,
+  ImageContainerProperty,
+  ImageRawDataUpdate,
 } from '@evenrealities/even_hub_sdk'
 import { state, bridge } from './state'
+import { LOGO_W, LOGO_H, LOGO_PNG } from './logo-data'
 
 // G2 display
 const W = 576
@@ -53,9 +56,6 @@ function textContainer(
     width: opts.w ?? W,
     height: opts.h ?? H,
     isEventCapture: opts.capture ? 1 : 0,
-    borderWidth: 0,
-    borderColor: 0,
-    borderRadius: 0,
     paddingLength: opts.padding ?? 4,
   })
 }
@@ -72,9 +72,6 @@ function listContainer(
     width: opts.w ?? W,
     height: opts.h ?? H,
     isEventCapture: 1,
-    borderWidth: 1,
-    borderColor: 13,
-    borderRadius: 6,
     paddingLength: 5,
     itemContainer: new ListItemContainerProperty({
       itemCount: items.length,
@@ -89,18 +86,19 @@ async function rebuild(
   count: number,
   textObject: TextContainerProperty[],
   listObject: ListContainerProperty[] = [],
+  imageObject: ImageContainerProperty[] = [],
 ) {
   if (!bridge) return
   displayRebuilt = false
 
   if (!state.startupRendered) {
     await bridge.createStartUpPageContainer(
-      new CreateStartUpPageContainer({ containerTotalNum: count, textObject, listObject }),
+      new CreateStartUpPageContainer({ containerTotalNum: count, textObject, listObject, imageObject }),
     )
     state.startupRendered = true
   } else {
     await bridge.rebuildPageContainer(
-      new RebuildPageContainer({ containerTotalNum: count, textObject, listObject }),
+      new RebuildPageContainer({ containerTotalNum: count, textObject, listObject, imageObject }),
     )
   }
   displayRebuilt = true
@@ -152,10 +150,29 @@ function paginate(text: string, maxChars = MAX_CHARS, maxLines = MAX_LINES): str
 // -- Welcome --
 
 export async function renderWelcome() {
-  // Single full-screen container for welcome - no split panel
-  await rebuild(1, [
-    textContainer(1, 'welcome', `\n\n\n${centerText('DELTACLAW')}\n\n${centerText('tap to enter')}`, { capture: true, padding: 0 }),
+  const logoX = Math.floor((W - LOGO_W) / 2)
+  const logoY = Math.floor((H - LOGO_H) / 2)
+
+  await rebuild(2, [
+    textContainer(1, 'evt', ' ', { capture: true, padding: 0 }),
+  ], [], [
+    new ImageContainerProperty({
+      containerID: 2,
+      containerName: 'logo',
+      xPosition: logoX,
+      yPosition: logoY,
+      width: LOGO_W,
+      height: LOGO_H,
+    }),
   ])
+
+  if (bridge) {
+    await bridge.updateImageRawData(new ImageRawDataUpdate({
+      containerID: 2,
+      containerName: 'logo',
+      imageData: LOGO_PNG,
+    }))
+  }
 }
 
 // -- Channel list with preview --
@@ -187,8 +204,8 @@ function buildChannelList(): string {
 
   return state.channels.slice(start, end).map((ch, i) => {
     const idx = start + i
-    const marker = idx === state.selectedChannel ? '>' : ' '
-    return `${marker} #${ch.name}`
+    const marker = idx === state.selectedChannel ? '\u25CF' : '\u25CB'
+    return `${marker} ${ch.name}`
   }).join('\n')
 }
 
@@ -208,7 +225,7 @@ let messageTitle = ''
 
 export async function renderMessages() {
   const ch = state.channels[state.selectedChannel]
-  messageTitle = ch ? `#${ch.name}` : 'Messages'
+  messageTitle = ch ? ch.name : 'Messages'
 
   const body = formatMessages()
   messagePages = paginate(body, MAX_CHARS - 60, 7)

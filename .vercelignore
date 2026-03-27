@@ -1,0 +1,15 @@
+node_modules
+dist
+docs
+g2
+shared
+src
+.env
+*.log
+*.md
+*.org
+flake.*
+justfile
+test-sim.sh
+index.html
+vite.config.ts

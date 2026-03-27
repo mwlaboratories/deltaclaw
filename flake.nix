@@ -43,6 +43,7 @@
             echo "  just simulate     Launch Even Hub simulator"
             echo "  just qr           QR code to sideload on glasses"
             echo "  just pack         Package .ehpk for submission"
+            echo "  vercel deploy     Deploy Hey Even function"
             echo ""
           '';
         };

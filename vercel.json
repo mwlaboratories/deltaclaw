@@ -1,0 +1,10 @@
+{
+  "buildCommand": "",
+  "outputDirectory": "",
+  "framework": null,
+  "functions": {
+    "api/v1/chat/completions.ts": {
+      "maxDuration": 30
+    }
+  }
+}

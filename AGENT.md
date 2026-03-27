@@ -121,7 +121,7 @@ Take screenshots: `nix shell nixpkgs#grim -c grim /tmp/deltaclaw-test.png`
 
 Kill: `pkill -f evenhub-simulator; pkill -f "vite.*5173"`
 
-**SDK v0.0.9 uses `borderRadius` (correct spelling).** Older versions used `borderRdaius` (typo). The simulator v0.6.2 rejects the typo. Always use `borderRadius`.
+**Always use `borderRdaius` (the typo).** Real glasses reject `borderRadius` (returns result=1 invalid, renders nothing). The simulator accepts both spellings, which is misleading. This was verified on real hardware 2026-03-27.
 
 ## Reference
 

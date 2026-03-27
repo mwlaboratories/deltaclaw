@@ -153,8 +153,7 @@ async function handleChannelEvent(_event: EvenHubEvent, type: OsEventTypeList) {
     }
 
     case OsEventTypeList.DOUBLE_CLICK_EVENT:
-      changeView('welcome')
-      await renderWelcome()
+      // No back from channels - this is the top-level view
       break
 
     case OsEventTypeList.CLICK_EVENT: {
@@ -189,12 +188,10 @@ async function handleMessageEvent(type: OsEventTypeList) {
   switch (type) {
     case OsEventTypeList.SCROLL_TOP_EVENT:
       scrollMessages('up')
-      void refreshMessages(state.discordToken, state.currentChannelId!)
       break
 
     case OsEventTypeList.SCROLL_BOTTOM_EVENT:
       scrollMessages('down')
-      void refreshMessages(state.discordToken, state.currentChannelId!)
       break
 
     case OsEventTypeList.CLICK_EVENT:
