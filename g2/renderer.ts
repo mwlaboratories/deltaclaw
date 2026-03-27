@@ -115,6 +115,13 @@ async function updateContent(id: number, name: string, content: string) {
 
 // -- Pagination --
 
+// Estimate how many visual lines a logical line occupies after word-wrap
+const TEXT_AREA_PX = 520
+function visualLineCount(line: string): number {
+  if (!line) return 1
+  return Math.max(1, Math.ceil(textWidth(line) / TEXT_AREA_PX))
+}
+
 function paginate(text: string, maxChars = MAX_CHARS, maxLines = MAX_LINES): string[] {
   const lines = text.split('\n')
   // Build pages back-to-front so the last page (newest messages) is always full
@@ -123,19 +130,23 @@ function paginate(text: string, maxChars = MAX_CHARS, maxLines = MAX_LINES): str
   let lineCount = 0
 
   for (let i = lines.length - 1; i >= 0; i--) {
+    // Skip blank separator lines at page boundaries
+    if (!lines[i] && !page) continue
+    const vlines = visualLineCount(lines[i])
     const next = page ? lines[i] + '\n' + page : lines[i]
-    if (next.length > maxChars || lineCount >= maxLines) {
+    if (next.length > maxChars || lineCount + vlines > maxLines) {
       if (page) pages.push(page)
-      page = lines[i]
-      lineCount = 1
+      // Don't start a new page with a blank separator line
+      if (!lines[i]) { page = ''; lineCount = 0 }
+      else { page = lines[i]; lineCount = vlines }
     } else {
       page = next
-      lineCount++
+      lineCount += vlines
     }
   }
   if (page) pages.push(page)
   pages.reverse()
-  return pages.length ? pages : ['']
+  return pages.length ? pages.map((p) => p.trim()) : ['']
 }
 
 // -- Welcome --
@@ -256,7 +267,7 @@ function formatMessages(): string {
       const time = formatTime(m.timestamp)
       return `${m.author} (${time}): ${m.content}`
     })
-    .join('\n')
+    .join('\n\n')
 }
 
 function formatTime(ts: string): string {
